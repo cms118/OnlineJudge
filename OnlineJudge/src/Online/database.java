@@ -1,6 +1,7 @@
 package Online;
 
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -24,7 +25,8 @@ public class database {
     public int cnt,c2;
     ResultSet rs;
     boolean f;
-    public void opendb(String query,int flag)
+    Class_Server serv = new Class_Server();
+    public void opendb(String query,int flag) throws IOException
     {
         try {
     
@@ -33,7 +35,16 @@ public class database {
             Connection conn = DriverManager.getConnection("jdbc:mysql://localhost/judge","root","root");
             Statement smt = conn.createStatement();
             if(flag==0){
+                try
+                {
             smt.executeUpdate(query);
+                }
+                catch(Exception e)
+                {
+                   serv.dout.flush();
+                   serv.dout.writeUTF("AlreadyExists");
+                }
+                
             }
             else if(flag==1){
             smt.executeQuery(query);
@@ -65,7 +76,10 @@ public class database {
             
         } catch (ClassNotFoundException ex) {
             System.out.println("Error 1");
+            
         } catch (SQLException ex) {
+            serv.dout.flush();
+            serv.dout.writeUTF("AlreadyExists");
             Logger.getLogger(database.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
@@ -94,5 +108,31 @@ public class database {
             Logger.getLogger(database.class.getName()).log(Level.SEVERE, null, ex);
         }
        return 0;       
+    }
+    
+    public String query2(String sql)
+    {
+        String str="";
+        try {
+            Class.forName("com.mysql.jdbc.Driver");
+            Connection conn;
+            try {
+                conn = DriverManager.getConnection("jdbc:mysql://localhost/judge","root","root");
+                Statement smt = conn.createStatement();
+                //smt.executeQuery(sql);
+                ResultSet rs=null;
+                rs =smt.executeQuery(sql); 
+                rs.first();
+                str = rs.getString("links");
+                System.out.println(str);
+            } catch (SQLException ex) {
+                Logger.getLogger(database.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            
+        } catch (ClassNotFoundException ex) {
+            Logger.getLogger(database.class.getName()).log(Level.SEVERE, null, ex);
+        }
+            
+         return str;   
     }
 }
